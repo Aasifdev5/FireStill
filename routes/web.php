@@ -221,14 +221,7 @@ Route::get('/get-subcategories/{category_id}', [ProductController::class, 'getSu
 Route::get('admin/unlock', [Admin::class, 'unlock'])->name('unlock');
 Route::post('/update-mode', [Admin::class, 'updateMode']);
 Route::get('/get-user-mode', [Admin::class, 'getUserMode'])->name('getUserMode');
-Route::get('/test-write', function () {
-    $path = public_path('uploads/qr_codes/test.txt');
-    if (!file_exists(dirname($path))) {
-        mkdir(dirname($path), 0755, true);
-    }
-    file_put_contents($path, 'Test');
-    return file_exists($path) ? 'Write successful' : 'Write failed';
-});
+
 
 Route::group(['prefix' => 'admin', 'middleware' => ['check.session', 'super.admin']], function () {
 
