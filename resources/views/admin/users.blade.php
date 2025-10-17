@@ -18,7 +18,7 @@ LISTA DE Inspector
 
     <div class="row mb-3">
         <div class="col-md-12 text-end">
-            <a href="{{ url('admin/add_user') }}" class="btn btn-success">+ Agregar Usuario</a>
+            <a href="{{ url('admin/add_user') }}" class="btn btn-success">+ Agregar Inspector</a>
             <button id="bulkDeleteBtn" class="btn btn-danger">Eliminar Seleccionados</button>
         </div>
     </div>

@@ -1,5 +1,5 @@
 @php
-    $isSuperAdmin = $user_session->is_super_admin ?? 0;
+    $isSuperAdmin = $user_session->is_super_admin;
 @endphp
 @if ($isSuperAdmin)
     <div class="sidebar-wrapper">
@@ -274,6 +274,63 @@
                                 <li><a class="{{ Request::is('support-ticket/open') ? 'active' : '' }}"
                                         href="{{ route('support-ticket.open') }}">{{ __('Open Ticket') }}</a></li>
                             </ul>
+                        </li>
+
+                    </ul>
+                </div>
+                <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>
+            </nav>
+        </div>
+    </div>
+    @else
+     <div class="sidebar-wrapper">
+        <div>
+            <div class="logo-wrapper"><a href="{{ route('dashboard') }}"><img class=" for-light" src="<?php echo '/' . $general_setting['app_footer_payment_image'] ?? ''; ?>"
+                        width="157px" height="80px" alt=""></a>
+                <div class="back-btn"><i data-feather="grid"></i></div>
+                <div class="toggle-sidebar icon-box-sidebar"><i class="status_toggle middle sidebar-toggle"
+                        data-feather="grid"> </i></div>
+            </div>
+            <div class="logo-icon-wrapper"><a href="{{ route('dashboard') }}">
+                    <div class="icon-box-sidebar"><i data-feather="grid"></i></div>
+                </a></div>
+            <nav class="sidebar-main">
+                <div class="left-arrow" id="left-arrow"><i data-feather="arrow-left"></i></div>
+                <div id="sidebar-menu">
+                    <ul class="sidebar-links" id="simple-bar">
+                        <li class="back-btn">
+                            <div class="mobile-back text-end"><span>Back</span><i class="fa fa-angle-right ps-2"
+                                    aria-hidden="true"></i></div>
+                        </li>
+                        <li class="pin-title sidebar-list">
+                            <h6>Pinned</h6>
+                        </li>
+                        <hr>
+
+                        <!-- Clients -->
+                        <li class="sidebar-list {{ Request::is('clients*') ? 'active' : '' }}">
+                            <i class="fa fa-users"></i>
+                            <a class="sidebar-link sidebar-title link-nav" href="{{ route('clients.index') }}">
+                                <i data-feather="user"></i>
+                                <span>Clientes</span>
+                            </a>
+                        </li>
+                        <!-- Equipments -->
+                        <li class="sidebar-list {{ Request::is('equipments*') ? 'active' : '' }}">
+                            <i class="fa fa-cogs"></i>
+                            <a class="sidebar-link sidebar-title link-nav" href="{{ route('equipments.index') }}">
+                                <i data-feather="cpu"></i>
+                                <span>Equipos</span>
+                            </a>
+                        </li>
+
+                        <!-- Inspections -->
+                        <li class="sidebar-list {{ Request::is('inspections*') ? 'active' : '' }}">
+                            <i class="fa fa-search"></i>
+                            <a class="sidebar-link sidebar-title link-nav" href="{{ route('inspections.index') }}">
+                                <i data-feather="file-text"></i>
+                                <span>Inspecciones</span>
+                            </a>
                         </li>
 
                     </ul>

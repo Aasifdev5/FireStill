@@ -223,7 +223,7 @@ Route::post('/update-mode', [Admin::class, 'updateMode']);
 Route::get('/get-user-mode', [Admin::class, 'getUserMode'])->name('getUserMode');
 
 
-Route::group(['prefix' => 'admin', 'middleware' => ['check.session', 'super.admin']], function () {
+Route::group(['prefix' => 'admin', 'middleware' => ['check.session']], function () {
 
     Route::group(['middleware' => 'admin-prevent-back-history', SetLocale::class], function () {
 

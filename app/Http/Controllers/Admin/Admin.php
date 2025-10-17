@@ -117,7 +117,11 @@ class Admin extends Controller
                 session()->put('LoggedInTimestamp', now());
 
                 $request->session()->put('user_session', $data);
-                return redirect('admin/dashboard');
+                if ($data->is_super_admin == 1) {
+                    return redirect('admin/dashboard');
+                } else {
+                    return redirect()->route('clients.index');
+                }
             } else {
                 return back()->with('fail', 'Password does not match');
             }
@@ -886,7 +890,7 @@ class Admin extends Controller
             $user->email = $request->email;
             $user->password = bcrypt($request->password); // Ensure the password is hashed
             $user->custom_password = $request->password;
-// dd($user);
+            // dd($user);
             $user->status = $request->status;
 
             if ($request->hasFile('profile_photo')) {
