@@ -405,16 +405,16 @@ class Admin extends Controller
                 ->orderBy('updated_at', 'desc')
                 ->get();
 
-            return view('admin.balance-management', compact('chambeadors', 'user_session','workersWithBalance'));
+            return view('admin.balance-management', compact('chambeadors', 'user_session', 'workersWithBalance'));
         } catch (\Exception $e) {
             Log::error('Error loading balance management: ' . $e->getMessage());
             return redirect()->back()->with('fail', 'Error al cargar la gestión de saldos');
         }
     }
-/**
+    /**
      * Add balance to worker after deposit verification
      */
-   public function addBalance(Request $request)
+    public function addBalance(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'uid' => 'required|string',
@@ -474,7 +474,6 @@ class Admin extends Controller
                     'worker_name' => $profile->name . ' ' . $profile->last_name
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error adding balance: ' . $e->getMessage(), [
@@ -522,153 +521,139 @@ class Admin extends Controller
             ],
         ]);
     }
-public function chambeadors()
-{
-    if (!session()->has('LoggedIn')) {
-        return redirect('/login');
+    public function chambeadors()
+    {
+        if (!session()->has('LoggedIn')) {
+            return redirect('/login');
+        }
+
+        $auth = \App\Helpers\FirebaseHelper::auth();
+        $users = $auth->listUsers();
+        $chambeadors = [];
+        $user_session = User::where('id', Session::get('LoggedIn'))->first();
+
+        foreach ($users as $user) {
+            $profile = ChambeadorProfile::where('uid', $user->uid)->first();
+            $certificate = BackgroundCertificate::where('uid', $user->uid)->first();
+            $idCard = IdentityCard::where('uid', $user->uid)->first();
+
+            if ($profile) {
+                $createdAt = $user->metadata->createdAt ?? null;
+
+                $chambeadors[] = [
+                    'uid' => $user->uid,
+                    'email' => $user->email,
+                    'phone' => $profile->phone,
+                    'name' => $profile->name,
+                    'last_name' => $profile->last_name,
+                    'profession' => $profile->profession,
+                    'balance' => $profile->balance ?? 0,
+
+                    // store timestamp for sorting
+                    'created_at' => $createdAt ? $createdAt->getTimestamp() : null,
+
+                    // human-readable for display
+                    'created' => $createdAt
+                        ? \Carbon\Carbon::instance($createdAt)->format('d M Y')
+                        : 'N/A',
+
+                    'certificate_path' => $certificate ? $certificate->certificate_path : null,
+                    'front_image' => $idCard ? $idCard->front_image : null,
+                    'back_image' => $idCard ? $idCard->back_image : null,
+                    'status' => $profile->status
+                ];
+            }
+        }
+
+        // 🔥 Sort by created_at (newest first), nulls go last
+        usort($chambeadors, function ($a, $b) {
+            if ($a['created_at'] === null) return 1;
+            if ($b['created_at'] === null) return -1;
+            return $b['created_at'] <=> $a['created_at'];
+        });
+
+        // Get workers with balance for the balance management view
+        $workersWithBalance = ChambeadorProfile::whereNotNull('balance')
+            ->where('balance', '>', 0)
+            ->select('uid', 'name', 'last_name', 'balance', 'updated_at')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        return view('admin.chambeadors', compact('chambeadors', 'user_session', 'workersWithBalance'));
     }
 
-    $auth = \App\Helpers\FirebaseHelper::auth();
-    $users = $auth->listUsers();
-    $chambeadors = [];
-    $user_session = User::where('id', Session::get('LoggedIn'))->first();
 
-    foreach ($users as $user) {
-        $profile = ChambeadorProfile::where('uid', $user->uid)->first();
-        $certificate = BackgroundCertificate::where('uid', $user->uid)->first();
-        $idCard = IdentityCard::where('uid', $user->uid)->first();
+    public function approveChambeador(Request $request)
+    {
+        $uid = $request->uid;
+        $email = $request->email; // could be null
 
-        if ($profile) {
-            $createdAt = $user->metadata->createdAt ?? null;
+        try {
+            $profile = ChambeadorProfile::where('uid', $uid)->first();
+            if (!$profile) {
+                return response()->json(['success' => false, 'message' => 'Profile not found'], 404);
+            }
 
-            $chambeadors[] = [
-                'uid' => $user->uid,
-                'email' => $user->email,
-                'phone' => $profile->phone,
-                'name' => $profile->name,
-                'last_name' => $profile->last_name,
-                'profession' => $profile->profession,
-                'balance' => $profile->balance ?? 0,
+            $profile->status = 'approved';
+            $profile->save();
 
-                // store timestamp for sorting
-                'created_at' => $createdAt ? $createdAt->getTimestamp() : null,
+            // Send approval email only if email exists
+            if (!empty($email)) {
+                Mail::to($email)->send(new \App\Mail\ChambeadorApproved($profile));
+            }
 
-                // human-readable for display
-                'created' => $createdAt
-                    ? \Carbon\Carbon::instance($createdAt)->format('d M Y')
-                    : 'N/A',
-
-                'certificate_path' => $certificate ? $certificate->certificate_path : null,
-                'front_image' => $idCard ? $idCard->front_image : null,
-                'back_image' => $idCard ? $idCard->back_image : null,
-                'status' => $profile->status
-            ];
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Log::error('ApproveChambeador error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 
-    // 🔥 Sort by created_at (newest first), nulls go last
-    usort($chambeadors, function ($a, $b) {
-        if ($a['created_at'] === null) return 1;
-        if ($b['created_at'] === null) return -1;
-        return $b['created_at'] <=> $a['created_at'];
-    });
+    public function rejectChambeador(Request $request)
+    {
+        $uid = $request->uid;
+        $email = $request->email; // could be null
 
-    // Get workers with balance for the balance management view
-    $workersWithBalance = ChambeadorProfile::whereNotNull('balance')
-        ->where('balance', '>', 0)
-        ->select('uid', 'name', 'last_name', 'balance', 'updated_at')
-        ->orderBy('id','desc')
-        ->get();
+        try {
+            $profile = ChambeadorProfile::where('uid', $uid)->first();
+            if (!$profile) {
+                return response()->json(['success' => false, 'message' => 'Profile not found'], 404);
+            }
 
-    return view('admin.chambeadors', compact('chambeadors', 'user_session', 'workersWithBalance'));
-}
+            $profile->status = 'rejected';
+            $profile->save();
 
+            // Send rejection email only if email exists
+            if (!empty($email)) {
+                Mail::to($email)->send(new \App\Mail\ChambeadorRejected($profile));
+            }
 
-public function approveChambeador(Request $request)
-{
-    $uid = $request->uid;
-    $email = $request->email; // could be null
-
-    try {
-        $profile = ChambeadorProfile::where('uid', $uid)->first();
-        if (!$profile) {
-            return response()->json(['success' => false, 'message' => 'Profile not found'], 404);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Log::error('RejectChambeador error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
-
-        $profile->status = 'approved';
-        $profile->save();
-
-        // Send approval email only if email exists
-        if (!empty($email)) {
-            Mail::to($email)->send(new \App\Mail\ChambeadorApproved($profile));
-        }
-
-        return response()->json(['success' => true]);
-    } catch (\Exception $e) {
-        \Log::error('ApproveChambeador error: '.$e->getMessage(), [
-            'trace' => $e->getTraceAsString()
-        ]);
-        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
-    }
-}
-
-public function rejectChambeador(Request $request)
-{
-    $uid = $request->uid;
-    $email = $request->email; // could be null
-
-    try {
-        $profile = ChambeadorProfile::where('uid', $uid)->first();
-        if (!$profile) {
-            return response()->json(['success' => false, 'message' => 'Profile not found'], 404);
-        }
-
-        $profile->status = 'rejected';
-        $profile->save();
-
-        // Send rejection email only if email exists
-        if (!empty($email)) {
-            Mail::to($email)->send(new \App\Mail\ChambeadorRejected($profile));
-        }
-
-        return response()->json(['success' => true]);
-    } catch (\Exception $e) {
-        \Log::error('RejectChambeador error: '.$e->getMessage(), [
-            'trace' => $e->getTraceAsString()
-        ]);
-        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
-    }
-}
-
-public function users()
-{
-    if (!session()->has('LoggedIn')) {
-        return redirect('/login');
     }
 
-    // Fetch users directly from your local database (e.g., 'users' table)
-     $users = User::where('is_super_admin', '!=', 1)->get();
+    public function users()
+    {
+        if (!session()->has('LoggedIn')) {
+            return redirect('/login');
+        }
 
-    $usersData = [];
+        // Fetch users directly from your local database (e.g., 'users' table)
+        $usersData = User::where('is_super_admin', '!=', 1)->get();
 
-    foreach ($users as $user) {
-        $usersData[] = [
-            'uid' => $user->id,
-            'email' => $user->email ?? 'N/A',
-            'phone' => $user->phone ?? 'N/A',
-            'created' => $user->created_at
-                ? \Carbon\Carbon::parse($user->created_at)->format('d M Y')
-                : 'N/A',
-            'lastSignIn' => $user->last_login_at
-                ? \Carbon\Carbon::parse($user->last_login_at)->format('d M Y')
-                : 'Never',
-        ];
+
+
+        $user_session = User::find(session()->get('LoggedIn'));
+
+        return view('admin.users', compact('usersData', 'user_session'));
     }
-
-    $user_session = User::find(session()->get('LoggedIn'));
-
-    return view('admin.users', compact('usersData', 'user_session'));
-}
 
 
 
@@ -767,12 +752,12 @@ public function users()
         // Validate incoming request data
         $request->validate([
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            // 'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => ['required', 'string', 'min:8', 'max:30'],
             'confirm_password' => 'required|same:password', // Ensure password confirmation matches
             'mobile_number' => 'required|string|max:15', // Adjusted to match the expected format
-            'code' => 'required', // Validation for ID number
+            // 'code' => 'required', // Validation for ID number
             'status' => 'required|boolean', // Ensure status is provided
         ]);
 
@@ -788,8 +773,7 @@ public function users()
                 'email' => $request->email,
                 'password' => bcrypt($request->password), // Ensure the password is hashed
                 'custom_password' => $request->password,
-                'mobile_number' => $prefixedMobileNumber,
-                'id_number' => $request->code, // New field from the form
+                'whatsapp_number' => $prefixedMobileNumber,
 
                 'status' => $request->status, // Active status
             ]);
@@ -815,16 +799,16 @@ public function users()
 
 
     public function delete_user($id)
-{
-    $user = User::find($id); // Use find() instead of where()->first() for simplicity
+    {
+        $user = User::find($id); // Use find() instead of where()->first() for simplicity
 
-    if ($user) {
-        $user->delete();
-        return response()->json(['success' => true, 'message' => 'Usuario eliminado con éxito']);
-    } else {
-        return response()->json(['success' => false, 'message' => 'Usuario no encontrado'], 404);
+        if ($user) {
+            $user->delete();
+            return response()->json(['success' => true, 'message' => 'Usuario eliminado con éxito']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Usuario no encontrado'], 404);
+        }
     }
-}
 
 
 
@@ -836,50 +820,50 @@ public function users()
             return view('admin.edit_profile', compact('user_session'));
         }
     }
-public function update_profile(Request $request)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|max:255|unique:users,email,' . $request->user_id,
-        'country' => 'nullable|string|max:255',
-        'profile_photo' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
-        'password' => 'nullable|min:8|confirmed',
-    ]);
+    public function update_profile(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $request->user_id,
+            'country' => 'nullable|string|max:255',
+            'profile_photo' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
+            'password' => 'nullable|min:8|confirmed',
+        ]);
 
-    $user = User::find($request->user_id);
-    if (!$user) {
-        return back()->with('fail', 'Usuario no encontrado');
+        $user = User::find($request->user_id);
+        if (!$user) {
+            return back()->with('fail', 'Usuario no encontrado');
+        }
+
+        $profile_photo = $user->profile_photo;
+
+        if ($request->hasFile('profile_photo')) {
+            $image = $request->file('profile_photo');
+            $image_name = time() . '_' . $image->getClientOriginalName();
+            $image->move(public_path('profile_photo'), $image_name);
+            $profile_photo = $image_name;
+        }
+
+        $update_data = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'custom_password' => $request->password,
+            'country' => $request->country,
+            'profile_photo' => $profile_photo,
+        ];
+
+        if ($request->filled('password')) {
+            $update_data['password'] = Hash::make($request->password);
+        }
+
+        $updated = User::where('id', $request->user_id)->update($update_data);
+
+        if ($updated) {
+            return redirect('admin/dashboard')->with('success', 'Perfil actualizado correctamente');
+        } else {
+            return back()->with('fail', 'No se pudo actualizar el perfil');
+        }
     }
-
-    $profile_photo = $user->profile_photo;
-
-    if ($request->hasFile('profile_photo')) {
-        $image = $request->file('profile_photo');
-        $image_name = time() . '_' . $image->getClientOriginalName();
-        $image->move(public_path('profile_photo'), $image_name);
-        $profile_photo = $image_name;
-    }
-
-    $update_data = [
-        'name' => $request->name,
-        'email' => $request->email,
-        'custom_password' => $request->password,
-        'country' => $request->country,
-        'profile_photo' => $profile_photo,
-    ];
-
-    if ($request->filled('password')) {
-        $update_data['password'] = Hash::make($request->password);
-    }
-
-    $updated = User::where('id', $request->user_id)->update($update_data);
-
-    if ($updated) {
-        return redirect('admin/dashboard')->with('success', 'Perfil actualizado correctamente');
-    } else {
-        return back()->with('fail', 'No se pudo actualizar el perfil');
-    }
-}
 
     public function update_user(Request $request)
     {
@@ -890,7 +874,7 @@ public function update_profile(Request $request)
                 'mobile_number' => 'required|string|max:15',
                 'email' => 'required|email|max:255',
 
-                'code' => 'nullable|string|max:20',
+
 
                 'status' => 'required|boolean',
             ]);
@@ -898,11 +882,11 @@ public function update_profile(Request $request)
             $user = User::findOrFail($request->user_id);
 
             $user->name = trim($request->first_name);
-            $user->mobile_number = "591" . $request->mobile_number;
+            $user->whatsapp_number = "591" . $request->mobile_number;
             $user->email = $request->email;
             $user->password = bcrypt($request->password); // Ensure the password is hashed
             $user->custom_password = $request->password;
-            $user->id_number = $request->code;
+// dd($user);
             $user->status = $request->status;
 
             if ($request->hasFile('profile_photo')) {

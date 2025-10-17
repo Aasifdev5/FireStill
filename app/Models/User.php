@@ -24,6 +24,7 @@ class User extends Authenticatable
         'google_id',
         'fcm_token',
         'password',
+        'custom_password',
         'phone',
         'membershipType',
         'membership_status',

@@ -111,7 +111,7 @@
                                 class="fa fa-thumb-tack"></i>
                             <a class="sidebar-link sidebar-title link-nav" href="{{ route('users') }}">
                                 <i class="fa fa-users text-light"></i>&nbsp;&nbsp;&nbsp;
-                                <span>Users Manage</span>
+                                <span>Inspector Manage</span>
                             </a>
                         </li>
                         {{-- <li class="sidebar-list {{ Request::is('admin/portfolios') ? 'active' : '' }}"><i
