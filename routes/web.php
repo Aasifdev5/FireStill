@@ -221,8 +221,8 @@ Route::get('/get-subcategories/{category_id}', [ProductController::class, 'getSu
 Route::get('admin/unlock', [Admin::class, 'unlock'])->name('unlock');
 Route::post('/update-mode', [Admin::class, 'updateMode']);
 Route::get('/get-user-mode', [Admin::class, 'getUserMode'])->name('getUserMode');
-
-
+Route::get('/inspections/history', [InspectionController::class, 'history'])->name('inspections.history');
+Route::get('/equipment/label', [EquipmentController::class, 'label'])->name('equipments.label');
 Route::group(['prefix' => 'admin', 'middleware' => ['check.session']], function () {
 
     Route::group(['middleware' => 'admin-prevent-back-history', SetLocale::class], function () {
@@ -245,9 +245,13 @@ Route::group(['prefix' => 'admin', 'middleware' => ['check.session']], function 
         Route::post('/equipments/reject', [EquipmentController::class, 'reject'])->name('equipments.reject');
         Route::delete('/equipments/{equipment}', [EquipmentController::class, 'destroy'])->name('equipments.destroy');
         Route::get('/equipment/status', [EquipmentController::class, 'checkStatus'])->name('equipment.status');
+        Route::get('/equipments/profile', [EquipmentController::class, 'profile'])->name('equipments.profile');
+
+
         Route::get('/scan-qr', [EquipmentController::class, 'showQrScanner'])->name('scan.qr');
         // Inspections
         Route::get('/inspections', [InspectionController::class, 'index'])->name('inspections.index');
+
         Route::get('/inspections/create/{equipment}', [InspectionController::class, 'create'])->name('inspections.create');
         Route::post('/inspections/store', [InspectionController::class, 'store'])->name('inspections.store');
         Route::get('/inspections/{inspection}/pdf', [InspectionController::class, 'pdf'])->name('inspections.pdf');

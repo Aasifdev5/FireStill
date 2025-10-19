@@ -458,7 +458,7 @@
 
                         <div class="photo-upload-area" id="photoUploadArea">
                             <div class="photo-upload-icon">
-                                <i class="fas fa-cloud-upload-alt"></i>
+                                <i class="fas fa-camera me-2"></i>
                             </div>
                             <h5>Arrastra y suelta las fotos aquí</h5>
                             <p class="text-muted">o haz clic para seleccionar archivos</p>

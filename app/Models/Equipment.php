@@ -16,10 +16,17 @@ class Equipment extends Model
         'client_id',
         'code',
         'qr_code',
+        'inspection_qr_code', // Added for inspection history QR code
         'type',
+        'brand',
+        'model',
+        'manufacturer_code',
+        'serial_number',
         'location',
         'status',
         'agent_type',
+        'manufacture_date',
+        'last_recharge_date',
         'installation_date',
         'expiry_date',
         'notes',
@@ -54,8 +61,8 @@ class Equipment extends Model
      */
     public function nextInspectionDate()
     {
-        $latest = $this->latestInspection;
-        return $latest ? $latest->inspected_at->addMonths(6) : now();
+        $latest = $this->latestInspection()->first();
+        return $latest ? \Carbon\Carbon::parse($latest->inspected_at)->addMonths(6) : now();
     }
 
     /**
@@ -72,7 +79,7 @@ class Equipment extends Model
      */
     public function isCritical()
     {
-        $latest = $this->latestInspection;
+        $latest = $this->latestInspection()->first();
         return $latest && $latest->status === 'critical';
     }
 
@@ -86,5 +93,35 @@ class Equipment extends Model
             $isCritical = $type === 'critical';
             $this->client->notify(new \App\Notifications\EquipmentInspectionReminder($this, $nextInspection, $isCritical));
         }
+    }
+
+    /**
+     * Get the current status indicator.
+     */
+    public function getStatusIndicator()
+    {
+        if ($this->isCritical()) {
+            return '🔴 Out of service';
+        } elseif ($this->needsReminder()) {
+            return '🟡 Needs maintenance';
+        } else {
+            return '🟢 Operational';
+        }
+    }
+
+    /**
+     * Get the equipment type display (e.g., "Powder Extinguisher").
+     */
+    public function getTypeDisplay()
+    {
+        $typeMap = [
+            'extinguisher' => 'Extinguisher',
+            'hydrant' => 'Hydrant',
+            'hose' => 'Hose',
+            'cabinet' => 'Cabinet',
+        ];
+
+        $baseType = $typeMap[$this->type] ?? ucfirst($this->type);
+        return $this->agent_type ? $this->agent_type . ' ' . $baseType : $baseType;
     }
 }

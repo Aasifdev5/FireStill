@@ -33,6 +33,26 @@
                 </div>
 
                 <div class="mb-3">
+                    <label>Marca</label>
+                    <input type="text" name="brand" value="{{ $equipment->brand }}" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label>Modelo</label>
+                    <input type="text" name="model" value="{{ $equipment->model }}" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label>Código del Fabricante</label>
+                    <input type="text" name="manufacturer_code" value="{{ $equipment->manufacturer_code }}" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label>Número de Serie</label>
+                    <input type="text" name="serial_number" value="{{ $equipment->serial_number }}" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
                     <label>Ubicación</label>
                     <input type="text" name="location" value="{{ $equipment->location }}" class="form-control" required>
                 </div>
@@ -43,19 +63,32 @@
                 </div>
 
                 <div class="mb-3">
-    <label>Fecha de Instalación</label>
-    <input type="text" name="installation_date"
-           value="{{ $equipment->installation_date ? \Carbon\Carbon::parse($equipment->installation_date)->format('Y-m-d') : '' }}"
-           class="form-control flatpickr">
-</div>
+                    <label>Fecha de Manufactura</label>
+                    <input type="text" name="manufacture_date"
+                           value="{{ $equipment->manufacture_date ? \Carbon\Carbon::parse($equipment->manufacture_date)->format('Y-m-d') : '' }}"
+                           class="form-control flatpickr">
+                </div>
 
-<div class="mb-3">
-    <label>Fecha de Expiración</label>
-    <input type="text" name="expiry_date"
-           value="{{ $equipment->expiry_date ? \Carbon\Carbon::parse($equipment->expiry_date)->format('Y-m-d') : '' }}"
-           class="form-control flatpickr">
-</div>
+                <div class="mb-3">
+                    <label>Fecha de Última Recarga</label>
+                    <input type="text" name="last_recharge_date"
+                           value="{{ $equipment->last_recharge_date ? \Carbon\Carbon::parse($equipment->last_recharge_date)->format('Y-m-d') : '' }}"
+                           class="form-control flatpickr">
+                </div>
 
+                <div class="mb-3">
+                    <label>Fecha de Instalación</label>
+                    <input type="text" name="installation_date"
+                           value="{{ $equipment->installation_date ? \Carbon\Carbon::parse($equipment->installation_date)->format('Y-m-d') : '' }}"
+                           class="form-control flatpickr">
+                </div>
+
+                <div class="mb-3">
+                    <label>Fecha de Expiración</label>
+                    <input type="text" name="expiry_date"
+                           value="{{ $equipment->expiry_date ? \Carbon\Carbon::parse($equipment->expiry_date)->format('Y-m-d') : '' }}"
+                           class="form-control flatpickr">
+                </div>
 
                 <div class="mb-3">
                     <label>Notas</label>

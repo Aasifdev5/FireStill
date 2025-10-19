@@ -31,6 +31,26 @@
         </div>
 
         <div class="mb-3">
+          <label>Marca</label>
+          <input type="text" name="brand" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label>Modelo</label>
+          <input type="text" name="model" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label>Código del Fabricante</label>
+          <input type="text" name="manufacturer_code" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label>Número de Serie</label>
+          <input type="text" name="serial_number" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
           <label>Ubicación</label>
           <input type="text" name="location" class="form-control" required>
         </div>
@@ -38,6 +58,16 @@
         <div class="mb-3">
           <label>Tipo de Agente</label>
           <input type="text" name="agent_type" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label>Fecha de Manufactura</label>
+          <input type="text" name="manufacture_date" class="form-control flatpickr" placeholder="Selecciona fecha">
+        </div>
+
+        <div class="mb-3">
+          <label>Fecha de Última Recarga</label>
+          <input type="text" name="last_recharge_date" class="form-control flatpickr" placeholder="Selecciona fecha">
         </div>
 
         <div class="mb-3">

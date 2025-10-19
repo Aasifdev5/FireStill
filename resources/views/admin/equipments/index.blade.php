@@ -44,20 +44,13 @@
                             <td>{{ $eq['created'] }}</td>
                             <td>
                                 @if ($eq['qr_code'] && $eq['qr_code_exists'])
-                                    <img src="{{ asset($eq['qr_code']) }}" width="80" alt="QR Code for {{ $eq['code'] }}" data-path="{{ public_path($eq['qr_code']) }}">
+                                    <img src="{{ asset($eq['qr_code']) }}" width="80" alt="QR Code for {{ $eq['code'] }}">
                                 @else
                                     <span class="text-muted">No QR Code</span>
                                 @endif
                             </td>
                             <td>
-                                @php
-                                    $badge = match ($eq['status']) {
-                                        'approved' => 'success',
-                                        'rejected' => 'danger',
-                                        default => 'warning',
-                                    };
-                                @endphp
-                                <span class="badge bg-{{ $badge }}">{{ ucfirst($eq['status']) }}</span>
+                                <span class="badge bg-warning">{{ $eq['status_indicator'] }}</span>
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
@@ -73,10 +66,11 @@
                                     <button type="button" class="btn btn-sm btn-danger delete-btn" data-id="{{ $eq['id'] }}">
                                         <i class="fa fa-trash"></i> Eliminar
                                     </button>
-                                    <a href="{{ route('scan.qr') }}?code={{ urlencode($eq['code']) }}" class="btn btn-sm btn-info mt-1">
-                                        <i class="fas fa-qrcode"></i> Escanear QR
+                                    <a href="{{ route('equipments.profile') }}?code={{ urlencode($eq['code']) }}" class="btn btn-sm btn-info mt-1">
+                                        <i class="fas fa-qrcode"></i> Ver Perfil
                                     </a>
-                                    <!-- Create Inspection Button (only for approved equipment) -->
+
+                                    <!-- Nueva Inspección solo para equipos aprobados -->
                                     @if ($eq['status'] === 'approved')
                                         <a href="{{ route('inspections.create', $eq['id']) }}" class="btn btn-sm btn-primary mt-1">
                                             <i class="fas fa-plus"></i> Nueva Inspección
@@ -103,7 +97,7 @@ $(function() {
         language: { url: "//cdn.datatables.net/plug-ins/1.11.3/i18n/Spanish.json" }
     });
 
-    // Approve
+    // Aprobar
     $('.approve-btn').click(function() {
         const id = $(this).data('id');
         Swal.fire({
@@ -120,7 +114,7 @@ $(function() {
         });
     });
 
-    // Reject
+    // Rechazar
     $('.reject-btn').click(function() {
         const id = $(this).data('id');
         Swal.fire({
@@ -137,7 +131,7 @@ $(function() {
         });
     });
 
-    // Delete
+    // Eliminar
     $('.delete-btn').click(function() {
         const id = $(this).data('id');
         Swal.fire({

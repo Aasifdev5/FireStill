@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.2
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Oct 16, 2025 at 04:46 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Host: 127.0.0.1:3306
+-- Generation Time: Oct 19, 2025 at 10:58 AM
+-- Server version: 11.8.3-MariaDB-log
+-- PHP Version: 7.2.34
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `firestill`
+-- Database: `u459467945_firestill`
 --
 
 -- --------------------------------------------------------
@@ -500,8 +500,7 @@ CREATE TABLE `clients` (
 --
 
 INSERT INTO `clients` (`id`, `name`, `email`, `phone`, `address`, `created_at`, `updated_at`) VALUES
-(1, 'Aasif Ahmed', 'aasifdev5@gmail.com', '8878326802', NULL, '2025-10-16 03:45:38', '2025-10-16 04:03:05'),
-(2, 'Santa Cruz', 'hrnatrajinfotech@gmail.com', '887832645802', NULL, '2025-10-16 04:03:17', '2025-10-16 04:03:17');
+(1, 'Aasif Ahmed', 'aasifdev5@gmail.com', '8878326802', NULL, '2025-10-16 03:45:38', '2025-10-16 04:03:05');
 
 -- --------------------------------------------------------
 
@@ -739,11 +738,18 @@ CREATE TABLE `equipments` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `client_id` bigint(20) UNSIGNED NOT NULL,
   `code` varchar(255) NOT NULL,
+  `manufacturer_code` varchar(255) DEFAULT NULL,
   `qr_code` varchar(255) DEFAULT NULL,
+  `inspection_qr_code` varchar(255) DEFAULT NULL,
   `type` enum('extinguisher','hydrant','hose','cabinet','other') NOT NULL,
+  `brand` varchar(255) DEFAULT NULL,
+  `model` varchar(255) DEFAULT NULL,
+  `serial_number` varchar(255) DEFAULT NULL,
   `location` varchar(255) DEFAULT NULL,
   `status` varchar(255) NOT NULL DEFAULT 'pending',
   `agent_type` varchar(255) DEFAULT NULL,
+  `manufacture_date` date DEFAULT NULL,
+  `last_recharge_date` date DEFAULT NULL,
   `installation_date` date DEFAULT NULL,
   `expiry_date` date DEFAULT NULL,
   `notes` text DEFAULT NULL,
@@ -755,11 +761,12 @@ CREATE TABLE `equipments` (
 -- Dumping data for table `equipments`
 --
 
-INSERT INTO `equipments` (`id`, `client_id`, `code`, `qr_code`, `type`, `location`, `status`, `agent_type`, `installation_date`, `expiry_date`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 2, 'EQ-68F0B931388B3', 'uploads/qr_codes/EQ-68F0B931388B3.png', 'hydrant', 'Indore', 'approved', NULL, '2025-10-30', '2025-11-18', 'sfsdfs', '2025-10-16 03:51:53', '2025-10-16 05:45:10'),
-(2, 1, 'EQ-68F0BCBDD6672', 'uploads/qr_codes/EQ-68F0BCBDD6672.png', 'extinguisher', 'Indore mp', 'approved', 'sadsa', '2025-10-17', '2025-10-25', 'dfsdf', '2025-10-16 04:07:01', '2025-10-16 05:46:17'),
-(3, 2, 'EQ-68F0D28CABAEC', 'uploads/qr_codes/EQ-68F0D28CABAEC.png', 'cabinet', 'sfsdfs', 'rejected', 'retert', '2025-10-10', '2025-10-18', 'sddfsf', '2025-10-16 05:40:04', '2025-10-16 05:46:24'),
-(4, 2, 'EQ-68F0D3D434CF9', 'uploads/qr_codes/EQ-68F0D3D434CF9.png', 'hose', 'santa', 'pending', NULL, NULL, NULL, 'ssad', '2025-10-16 05:45:32', '2025-10-16 05:45:32');
+INSERT INTO `equipments` (`id`, `client_id`, `code`, `manufacturer_code`, `qr_code`, `inspection_qr_code`, `type`, `brand`, `model`, `serial_number`, `location`, `status`, `agent_type`, `manufacture_date`, `last_recharge_date`, `installation_date`, `expiry_date`, `notes`, `created_at`, `updated_at`) VALUES
+(2, 1, 'EQ-002', NULL, 'uploads/qr_codes/EQ-002.png', NULL, 'extinguisher', 'Generic', 'Model X', 'SN-EQ-68F0D3D434CF9-20251019', 'Santa', 'approved', 'Agua a presión', '2022-09-15', '2023-11-20', '2023-12-01', '2026-12-01', 'Revisar conexiones y presión cada 6 meses.', '2025-10-19 07:46:22', '2025-10-19 09:10:47'),
+(3, 1, 'EQ-003', NULL, 'uploads/qr_codes/EQ-003.png', NULL, 'extinguisher', 'FireGuard', 'FG-CO2-10', 'SN-EQ-AE8839DF78A12-20251019', 'Almacén B', 'activo', 'Dióxido de Carbono (CO₂)', '2021-07-30', '2024-02-15', '2024-03-01', '2027-03-01', 'Etiqueta dañada, pendiente de reemplazo.', '2025-10-19 07:46:22', '2025-10-19 08:35:03'),
+(4, 1, 'EQ-004', NULL, 'uploads/qr_codes/EQ-004.png', 'uploads/qr_codes/inspection_EQ-004.png', 'extinguisher', 'Kidde', 'KD-5ABC', 'SN-EQ-4C91A7B903B12-20251019', 'Oficina Principal', 'approved', 'Polvo químico seco (ABC)', '2023-01-12', '2024-08-01', '2024-08-10', '2027-08-10', 'Revisado y en correcto funcionamiento.', '2025-10-19 09:31:32', '2025-10-19 09:33:53'),
+(5, 1, 'EQ-005', NULL, 'uploads/qr_codes/EQ-005.png', NULL, 'extinguisher', 'FireMax', 'FM-WP-8', 'SN-EQ-59A84B9DF13D7-20251019', 'Taller Mecánico', 'pending', 'Agua presurizada', '2022-11-05', '2023-09-12', '2023-09-20', '2026-09-20', 'Etiqueta desgastada, requiere cambio pronto.', '2025-10-19 09:31:32', '2025-10-19 09:31:32'),
+(6, 1, 'EQ-006', NULL, 'uploads/qr_codes/EQ-006.png', NULL, 'extinguisher', 'Buckeye', 'BC-CO2-15', 'SN-EQ-9A1E38CDE45C2-20251019', 'Almacén Central', 'approved', 'Dióxido de Carbono (CO₂)', '2021-05-10', '2024-04-15', '2024-04-25', '2027-04-25', 'Presión verificada correctamente.', '2025-10-19 09:31:32', '2025-10-19 09:31:32');
 
 -- --------------------------------------------------------
 
@@ -942,17 +949,11 @@ CREATE TABLE `inspections` (
 --
 
 INSERT INTO `inspections` (`id`, `equipment_id`, `user_id`, `inspected_at`, `checklist`, `observations`, `status`, `expiration_date`, `report_path`, `created_at`, `updated_at`) VALUES
-(1, 2, 1, '2025-10-16 13:34:00', '{\"has_pressure\":\"yes\",\"has_seal\":\"no\",\"presents_abnormalities\":\"no\",\"paint_condition\":\"yes\",\"location_correct\":\"yes\",\"is_obstructed\":\"yes\",\"has_signage_identification\":\"yes\",\"has_instruction_label\":\"no\",\"nozzle_clean_free_dust\":\"yes\"}', 'sada', 'critical', '2025-10-20', 'uploads/inspections/reports/_report_1760621858.pdf', '2025-10-16 08:07:38', '2025-10-16 08:07:39'),
-(2, 1, 1, '2025-10-16 13:54:00', '{\"has_pressure\":\"yes\",\"has_seal\":\"no\",\"presents_abnormalities\":\"yes\",\"paint_condition\":\"no\",\"location_correct\":\"yes\",\"is_obstructed\":\"yes\",\"has_signage_identification\":\"yes\",\"has_instruction_label\":\"yes\",\"nozzle_clean_free_dust\":\"yes\"}', 'sdad', 'critical', '2025-12-20', 'uploads/inspections/reports/_report_1760622945.pdf', '2025-10-16 08:25:45', '2025-10-16 08:25:45'),
-(3, 2, 1, '2025-10-16 14:06:00', '{\"has_pressure\":\"yes\",\"has_seal\":\"yes\",\"presents_abnormalities\":\"no\",\"paint_condition\":\"no\",\"location_correct\":\"yes\",\"is_obstructed\":\"no\",\"has_signage_identification\":\"yes\",\"has_instruction_label\":\"yes\",\"nozzle_clean_free_dust\":\"no\"}', 'asdasd', 'critical', '2025-11-25', 'uploads/inspections/reports/1_report_1760623604.pdf', '2025-10-16 08:36:44', '2025-10-16 08:36:45'),
-(4, 2, 1, '2025-10-16 14:09:00', '{\"has_pressure\":\"yes\",\"has_seal\":\"yes\",\"presents_abnormalities\":\"yes\",\"paint_condition\":\"yes\",\"location_correct\":\"yes\",\"is_obstructed\":\"yes\",\"has_signage_identification\":\"yes\",\"has_instruction_label\":\"yes\",\"nozzle_clean_free_dust\":\"yes\"}', 'dsfdsf', 'critical', '2025-12-20', 'uploads/inspections/reports/1_report_1760623804.pdf', '2025-10-16 08:40:04', '2025-10-16 08:40:04'),
-(5, 1, 1, '2025-10-16 14:12:00', '{\"has_pressure\":\"yes\",\"has_seal\":\"no\",\"presents_abnormalities\":\"yes\",\"paint_condition\":\"yes\",\"location_correct\":\"yes\",\"is_obstructed\":\"no\",\"has_signage_identification\":\"yes\",\"has_instruction_label\":\"no\",\"nozzle_clean_free_dust\":\"yes\"}', 'dfs', 'critical', '2025-12-24', 'uploads/inspections/reports/1_report_1760623992.pdf', '2025-10-16 08:43:12', '2025-10-16 08:43:12'),
-(6, 2, 1, '2025-10-16 14:18:00', '{\"has_pressure\":\"yes\",\"has_seal\":\"yes\",\"presents_abnormalities\":\"yes\",\"paint_condition\":\"yes\",\"location_correct\":\"yes\",\"is_obstructed\":\"yes\",\"has_signage_identification\":\"yes\",\"has_instruction_label\":\"yes\",\"nozzle_clean_free_dust\":\"yes\"}', 'saada', 'critical', '2025-12-26', 'uploads/inspections/reports/1_report_1760624335.pdf', '2025-10-16 08:48:55', '2025-10-16 08:48:55'),
-(7, 2, 1, '2025-10-16 14:21:00', '{\"has_pressure\":\"yes\",\"has_seal\":\"no\",\"presents_abnormalities\":\"yes\",\"paint_condition\":\"no\",\"location_correct\":\"yes\",\"is_obstructed\":\"yes\",\"has_signage_identification\":\"no\",\"has_instruction_label\":\"no\",\"nozzle_clean_free_dust\":\"yes\"}', 'fsdf', 'critical', '2025-12-27', 'uploads/inspections/reports/1_report_1760624505.pdf', '2025-10-16 08:51:45', '2025-10-16 08:51:45'),
-(8, 2, 1, '2025-10-16 14:25:00', '{\"has_pressure\":\"yes\",\"has_seal\":\"no\",\"presents_abnormalities\":\"no\",\"paint_condition\":\"no\",\"location_correct\":\"yes\",\"is_obstructed\":\"yes\",\"has_signage_identification\":\"yes\",\"has_instruction_label\":\"yes\",\"nozzle_clean_free_dust\":\"no\"}', 'sdfs', 'critical', '2025-05-20', 'uploads/inspections/reports/1_report_1760624759.pdf', '2025-10-16 08:55:59', '2025-10-16 08:56:00'),
-(9, 1, 1, '2025-10-16 14:31:00', '{\"has_pressure\":\"yes\",\"has_seal\":\"yes\",\"presents_abnormalities\":\"no\",\"paint_condition\":\"yes\",\"location_correct\":\"yes\",\"is_obstructed\":\"yes\",\"has_signage_identification\":\"no\",\"has_instruction_label\":\"yes\",\"nozzle_clean_free_dust\":\"no\"}', 'ghfh', 'critical', '2025-12-23', 'uploads/inspections/reports/1_report_1760625101.pdf', '2025-10-16 09:01:41', '2025-10-16 09:01:42'),
-(10, 2, 1, '2025-10-16 14:35:00', '{\"has_pressure\":\"no\",\"has_seal\":\"no\",\"presents_abnormalities\":\"no\",\"paint_condition\":\"no\",\"location_correct\":\"no\",\"is_obstructed\":\"yes\",\"has_signage_identification\":\"yes\",\"has_instruction_label\":\"yes\",\"nozzle_clean_free_dust\":\"no\"}', 'sdfdsdfdfsdfdsfds', 'critical', '2025-12-29', 'uploads/inspections/reports/1_report_1760625394.pdf', '2025-10-16 09:06:34', '2025-10-16 09:06:34'),
-(11, 1, 1, '2025-10-16 14:43:00', '{\"has_pressure\":\"yes\",\"has_seal\":\"no\",\"presents_abnormalities\":\"no\",\"paint_condition\":\"yes\",\"location_correct\":\"no\",\"is_obstructed\":\"no\",\"has_signage_identification\":\"yes\",\"has_instruction_label\":\"no\",\"nozzle_clean_free_dust\":\"yes\"}', 'dfgfdsfdsffd', 'critical', '2025-12-21', 'uploads/inspections/reports/1_report_1760625878.pdf', '2025-10-16 09:14:37', '2025-10-16 09:14:39');
+(4, 4, 1, '2025-10-19 09:43:00', '{\"has_pressure\":\"yes\",\"has_seal\":\"no\",\"presents_abnormalities\":\"yes\",\"paint_condition\":\"yes\",\"location_correct\":\"yes\",\"is_obstructed\":\"no\",\"has_signage_identification\":\"no\",\"has_instruction_label\":\"no\",\"nozzle_clean_free_dust\":\"yes\"}', 'sdfsdfdsfsdf', 'critical', '2025-12-12', 'uploads/inspections/reports/1_report_1760867367.pdf', '2025-10-19 09:49:26', '2025-10-19 09:49:37'),
+(5, 4, 1, '2025-10-19 10:36:00', '{\"has_pressure\":\"no\",\"has_seal\":\"yes\",\"presents_abnormalities\":\"no\",\"paint_condition\":\"no\",\"location_correct\":\"no\",\"is_obstructed\":\"no\",\"has_signage_identification\":\"no\",\"has_instruction_label\":\"no\",\"nozzle_clean_free_dust\":\"no\"}', 'fgdsgsdfds', 'critical', '2026-01-01', 'uploads/inspections/reports/1_report_1760870269.pdf', '2025-10-19 10:37:49', '2025-10-19 10:37:51'),
+(6, 4, 1, '2025-10-19 10:46:00', '{\"has_pressure\":\"no\",\"has_seal\":\"no\",\"presents_abnormalities\":\"no\",\"paint_condition\":\"no\",\"location_correct\":\"no\",\"is_obstructed\":\"no\",\"has_signage_identification\":\"no\",\"has_instruction_label\":\"no\",\"nozzle_clean_free_dust\":\"no\"}', 'fgfdgfdgfdsg', 'critical', '2027-12-15', 'uploads/inspections/reports/1_report_1760870893.pdf', '2025-10-19 10:48:13', '2025-10-19 10:48:17'),
+(7, 4, 1, '2025-10-19 10:50:00', '{\"has_pressure\":\"yes\",\"has_seal\":\"no\",\"presents_abnormalities\":\"yes\",\"paint_condition\":\"no\",\"location_correct\":\"yes\",\"is_obstructed\":\"yes\",\"has_signage_identification\":\"no\",\"has_instruction_label\":\"yes\",\"nozzle_clean_free_dust\":\"yes\"}', 'xvxzczxc', 'critical', '2028-05-23', 'uploads/inspections/reports/1_report_1760871078.pdf', '2025-10-19 10:51:18', '2025-10-19 10:51:19'),
+(8, 4, 1, '2025-10-19 10:55:00', '{\"has_pressure\":\"yes\",\"has_seal\":\"no\",\"presents_abnormalities\":\"no\",\"paint_condition\":\"no\",\"location_correct\":\"no\",\"is_obstructed\":\"no\",\"has_signage_identification\":\"yes\",\"has_instruction_label\":\"yes\",\"nozzle_clean_free_dust\":\"no\"}', 'dfgdsfds', 'critical', '2029-03-15', 'uploads/inspections/reports/1_report_1760871365.pdf', '2025-10-19 10:56:05', '2025-10-19 10:56:06');
 
 -- --------------------------------------------------------
 
@@ -974,54 +975,26 @@ CREATE TABLE `inspection_photos` (
 --
 
 INSERT INTO `inspection_photos` (`id`, `inspection_id`, `path`, `label`, `created_at`, `updated_at`) VALUES
-(1, 1, 'uploads/inspections/photos/1_photo_1760621858.png', NULL, '2025-10-16 08:07:38', '2025-10-16 08:07:38'),
-(2, 2, 'uploads/inspections/photos/1_photo_1760622945.jpg', NULL, '2025-10-16 08:25:45', '2025-10-16 08:25:45'),
-(3, 2, 'uploads/inspections/photos/1_photo_1760622945.png', NULL, '2025-10-16 08:25:45', '2025-10-16 08:25:45'),
-(4, 2, 'uploads/inspections/photos/1_photo_1760622945.png', NULL, '2025-10-16 08:25:45', '2025-10-16 08:25:45'),
-(5, 2, 'uploads/inspections/photos/1_photo_1760622945.jpg', NULL, '2025-10-16 08:25:45', '2025-10-16 08:25:45'),
-(6, 2, 'uploads/inspections/photos/1_photo_1760622945.png', NULL, '2025-10-16 08:25:45', '2025-10-16 08:25:45'),
-(7, 2, 'uploads/inspections/photos/1_photo_1760622945.png', NULL, '2025-10-16 08:25:45', '2025-10-16 08:25:45'),
-(8, 3, 'uploads/inspections/photos/1_photo_1760623604.jpg', NULL, '2025-10-16 08:36:44', '2025-10-16 08:36:44'),
-(9, 3, 'uploads/inspections/photos/1_photo_1760623604.jpg', NULL, '2025-10-16 08:36:44', '2025-10-16 08:36:44'),
-(10, 3, 'uploads/inspections/photos/1_photo_1760623604.png', NULL, '2025-10-16 08:36:44', '2025-10-16 08:36:44'),
-(11, 3, 'uploads/inspections/photos/1_photo_1760623604.jpg', NULL, '2025-10-16 08:36:44', '2025-10-16 08:36:44'),
-(12, 3, 'uploads/inspections/photos/1_photo_1760623604.jpg', NULL, '2025-10-16 08:36:44', '2025-10-16 08:36:44'),
-(13, 4, 'uploads/inspections/photos/1_photo_1760623804.png', NULL, '2025-10-16 08:40:04', '2025-10-16 08:40:04'),
-(14, 4, 'uploads/inspections/photos/1_photo_1760623804.png', NULL, '2025-10-16 08:40:04', '2025-10-16 08:40:04'),
-(15, 4, 'uploads/inspections/photos/1_photo_1760623804.png', NULL, '2025-10-16 08:40:04', '2025-10-16 08:40:04'),
-(16, 4, 'uploads/inspections/photos/1_photo_1760623804.jpeg', NULL, '2025-10-16 08:40:04', '2025-10-16 08:40:04'),
-(17, 5, 'uploads/inspections/photos/1_photo_1760623992.png', NULL, '2025-10-16 08:43:12', '2025-10-16 08:43:12'),
-(18, 5, 'uploads/inspections/photos/1_photo_1760623992.png', NULL, '2025-10-16 08:43:12', '2025-10-16 08:43:12'),
-(19, 5, 'uploads/inspections/photos/1_photo_1760623992.png', NULL, '2025-10-16 08:43:12', '2025-10-16 08:43:12'),
-(20, 5, 'uploads/inspections/photos/1_photo_1760623992.jpg', NULL, '2025-10-16 08:43:12', '2025-10-16 08:43:12'),
-(21, 6, 'uploads/inspections/photos/1_photo_1760624335.png', NULL, '2025-10-16 08:48:55', '2025-10-16 08:48:55'),
-(22, 6, 'uploads/inspections/photos/1_photo_1760624335.png', NULL, '2025-10-16 08:48:55', '2025-10-16 08:48:55'),
-(23, 6, 'uploads/inspections/photos/1_photo_1760624335.png', NULL, '2025-10-16 08:48:55', '2025-10-16 08:48:55'),
-(24, 6, 'uploads/inspections/photos/1_photo_1760624335.png', NULL, '2025-10-16 08:48:55', '2025-10-16 08:48:55'),
-(25, 6, 'uploads/inspections/photos/1_photo_1760624335.png', NULL, '2025-10-16 08:48:55', '2025-10-16 08:48:55'),
-(26, 7, 'uploads/inspections/photos/1_photo_1760624505.png', NULL, '2025-10-16 08:51:45', '2025-10-16 08:51:45'),
-(27, 7, 'uploads/inspections/photos/1_photo_1760624505.png', NULL, '2025-10-16 08:51:45', '2025-10-16 08:51:45'),
-(28, 7, 'uploads/inspections/photos/1_photo_1760624505.png', NULL, '2025-10-16 08:51:45', '2025-10-16 08:51:45'),
-(29, 8, 'uploads/inspections/photos/1_photo_1760624759.jpg', NULL, '2025-10-16 08:55:59', '2025-10-16 08:55:59'),
-(30, 8, 'uploads/inspections/photos/1_photo_1760624759.png', NULL, '2025-10-16 08:55:59', '2025-10-16 08:55:59'),
-(31, 8, 'uploads/inspections/photos/1_photo_1760624759.png', NULL, '2025-10-16 08:55:59', '2025-10-16 08:55:59'),
-(32, 9, 'uploads/inspections/photos/1_photo_1760625101.jpg', NULL, '2025-10-16 09:01:41', '2025-10-16 09:01:41'),
-(33, 9, 'uploads/inspections/photos/1_photo_1760625101.png', NULL, '2025-10-16 09:01:41', '2025-10-16 09:01:41'),
-(34, 9, 'uploads/inspections/photos/1_photo_1760625101.png', NULL, '2025-10-16 09:01:41', '2025-10-16 09:01:41'),
-(35, 9, 'uploads/inspections/photos/1_photo_1760625101.png', NULL, '2025-10-16 09:01:41', '2025-10-16 09:01:41'),
-(36, 9, 'uploads/inspections/photos/1_photo_1760625101.jpeg', NULL, '2025-10-16 09:01:41', '2025-10-16 09:01:41'),
-(37, 9, 'uploads/inspections/photos/1_photo_1760625101.jpg', NULL, '2025-10-16 09:01:41', '2025-10-16 09:01:41'),
-(38, 10, 'uploads/inspections/photos/1_photo_1760625394.png', NULL, '2025-10-16 09:06:34', '2025-10-16 09:06:34'),
-(39, 10, 'uploads/inspections/photos/1_photo_1760625394.png', NULL, '2025-10-16 09:06:34', '2025-10-16 09:06:34'),
-(40, 10, 'uploads/inspections/photos/1_photo_1760625394.png', NULL, '2025-10-16 09:06:34', '2025-10-16 09:06:34'),
-(41, 10, 'uploads/inspections/photos/1_photo_1760625394.jpg', NULL, '2025-10-16 09:06:34', '2025-10-16 09:06:34'),
-(42, 10, 'uploads/inspections/photos/1_photo_1760625394.jpeg', NULL, '2025-10-16 09:06:34', '2025-10-16 09:06:34'),
-(43, 11, 'uploads/inspections/photos/1_photo_1760625877_0.png', NULL, '2025-10-16 09:14:37', '2025-10-16 09:14:37'),
-(44, 11, 'uploads/inspections/photos/1_photo_1760625877_1.jpeg', NULL, '2025-10-16 09:14:37', '2025-10-16 09:14:37'),
-(45, 11, 'uploads/inspections/photos/1_photo_1760625877_2.jpg', NULL, '2025-10-16 09:14:37', '2025-10-16 09:14:37'),
-(46, 11, 'uploads/inspections/photos/1_photo_1760625877_3.jpg', NULL, '2025-10-16 09:14:37', '2025-10-16 09:14:37'),
-(47, 11, 'uploads/inspections/photos/1_photo_1760625877_4.png', NULL, '2025-10-16 09:14:37', '2025-10-16 09:14:37'),
-(48, 11, 'uploads/inspections/photos/1_photo_1760625877_5.png', NULL, '2025-10-16 09:14:37', '2025-10-16 09:14:37');
+(1, 4, 'uploads/inspections/photos/1_photo_1760867366_0.png', NULL, '2025-10-19 09:49:26', '2025-10-19 09:49:26'),
+(2, 4, 'uploads/inspections/photos/1_photo_1760867366_1.png', NULL, '2025-10-19 09:49:26', '2025-10-19 09:49:26'),
+(3, 4, 'uploads/inspections/photos/1_photo_1760867366_2.jpg', NULL, '2025-10-19 09:49:26', '2025-10-19 09:49:26'),
+(4, 4, 'uploads/inspections/photos/1_photo_1760867366_3.png', NULL, '2025-10-19 09:49:26', '2025-10-19 09:49:26'),
+(5, 5, 'uploads/inspections/photos/1_photo_1760870269_0.png', NULL, '2025-10-19 10:37:49', '2025-10-19 10:37:49'),
+(6, 5, 'uploads/inspections/photos/1_photo_1760870269_1.png', NULL, '2025-10-19 10:37:49', '2025-10-19 10:37:49'),
+(7, 5, 'uploads/inspections/photos/1_photo_1760870269_2.png', NULL, '2025-10-19 10:37:49', '2025-10-19 10:37:49'),
+(8, 6, 'uploads/inspections/photos/1_photo_1760870893_0.png', NULL, '2025-10-19 10:48:13', '2025-10-19 10:48:13'),
+(9, 6, 'uploads/inspections/photos/1_photo_1760870893_1.jpg', NULL, '2025-10-19 10:48:13', '2025-10-19 10:48:13'),
+(10, 6, 'uploads/inspections/photos/1_photo_1760870893_2.png', NULL, '2025-10-19 10:48:13', '2025-10-19 10:48:13'),
+(11, 6, 'uploads/inspections/photos/1_photo_1760870893_3.png', NULL, '2025-10-19 10:48:13', '2025-10-19 10:48:13'),
+(12, 6, 'uploads/inspections/photos/1_photo_1760870893_4.png', NULL, '2025-10-19 10:48:13', '2025-10-19 10:48:13'),
+(13, 6, 'uploads/inspections/photos/1_photo_1760870893_5.jpg', NULL, '2025-10-19 10:48:13', '2025-10-19 10:48:13'),
+(14, 7, 'uploads/inspections/photos/1_photo_1760871078_0.jpg', NULL, '2025-10-19 10:51:18', '2025-10-19 10:51:18'),
+(15, 7, 'uploads/inspections/photos/1_photo_1760871078_1.jpg', NULL, '2025-10-19 10:51:18', '2025-10-19 10:51:18'),
+(16, 7, 'uploads/inspections/photos/1_photo_1760871078_2.png', NULL, '2025-10-19 10:51:18', '2025-10-19 10:51:18'),
+(17, 7, 'uploads/inspections/photos/1_photo_1760871078_3.jpg', NULL, '2025-10-19 10:51:18', '2025-10-19 10:51:18'),
+(18, 8, 'uploads/inspections/photos/1_photo_1760871365_0.jpeg', NULL, '2025-10-19 10:56:05', '2025-10-19 10:56:05'),
+(19, 8, 'uploads/inspections/photos/1_photo_1760871365_1.jpeg', NULL, '2025-10-19 10:56:05', '2025-10-19 10:56:05'),
+(20, 8, 'uploads/inspections/photos/1_photo_1760871365_2.png', NULL, '2025-10-19 10:56:05', '2025-10-19 10:56:05');
 
 -- --------------------------------------------------------
 
@@ -1226,14 +1199,6 @@ CREATE TABLE `news` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `news`
---
-
-INSERT INTO `news` (`id`, `title`, `type`, `thumbnail`, `content`, `file_path`, `author`, `created_at`, `updated_at`) VALUES
-(2, 'fgh', 'image', 'uploads/news/thumbnails/1739415437-AbU1ZLMCtm.jpeg', '<p>fggdfgd</p>', 'uploads/news/image/1734427526-juqv9glYeh.png', 'dtgertdgdte', '2024-12-17 03:47:28', '2025-02-12 21:27:17'),
-(3, 'sdada', 'image', 'uploads/news/thumbnails/1739415204-Na7oZ6UoVZ.jpeg', '<p>sdsdfsfsfewe</p>', NULL, 'Warren Buffett', '2025-02-12 21:23:24', '2025-02-12 21:23:24');
-
 -- --------------------------------------------------------
 
 --
@@ -1292,7 +1257,7 @@ CREATE TABLE `pages` (
   `page_content` text NOT NULL,
   `page_order` int(3) DEFAULT NULL,
   `status` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 --
 -- Dumping data for table `pages`
@@ -2166,7 +2131,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `uid`, `fcm_token`, `rating`, `username`, `is_active`, `profile_photo`, `mode`, `account_type`, `balance`, `is_subscribed`, `refer`, `level`, `is_online`, `last_seen`, `birth_date`, `role`, `permissions`, `name`, `email`, `google_id`, `email_verified_at`, `password`, `custom_password`, `whatsapp_number`, `about`, `city`, `facebook`, `instagram`, `linkedin`, `twitter`, `address`, `status`, `remember_token`, `ip_address`, `is_system`, `country`, `created_by`, `deleted_at`, `language`, `is_super_admin`, `created_at`, `updated_at`) VALUES
-(1, NULL, NULL, NULL, NULL, 1, '', 'dark', 'admin', NULL, 0, NULL, NULL, 1, '2025-10-16 08:51:04', NULL, '1', NULL, 'SUPER ADMINISTRADOR', 'admin@firestill.com', NULL, '2023-03-23 07:45:02', '$2y$10$sgLXLiwlfSqKV7pPTSgco.SLKcpQwOg.L4VrnH.DBVirfour.CGLa', '987654321', '8878326802', NULL, 'bolivia', NULL, NULL, NULL, NULL, 'sdfafa', 1, NULL, '127.0.0.1', 1, '1', NULL, NULL, 'es', 1, '2023-03-23 07:45:02', '2025-10-16 02:18:46');
+(1, NULL, NULL, NULL, NULL, 1, '', 'dark', 'admin', NULL, 0, NULL, NULL, 1, '2025-10-19 09:32:02', NULL, '1', NULL, 'SUPER ADMINISTRADOR', 'admin@firestill.lat', NULL, '2023-03-23 07:45:02', '$2y$10$sgLXLiwlfSqKV7pPTSgco.SLKcpQwOg.L4VrnH.DBVirfour.CGLa', '987654321', '8878326802', NULL, 'bolivia', NULL, NULL, NULL, NULL, 'sdfafa', 1, NULL, '127.0.0.1', 1, '1', NULL, NULL, 'es', 1, '2023-03-23 07:45:02', '2025-10-19 07:58:34'),
+(4, NULL, NULL, NULL, NULL, 1, NULL, 'dark', 'user', NULL, NULL, NULL, '0', 1, '2025-10-18 18:22:47', NULL, 'Trabajador', NULL, 'Juan Perez', 'arstech2a@gmail.com', NULL, NULL, '$2y$10$DG1ruRDoU1bRb9JA.Y4JZ.aSnnW.9mmA8NRNbC6PrM2Ua0/Rv4z5G', '987654321', '591591594332', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, 0, NULL, NULL, NULL, '\'en\'', 0, '2025-10-17 01:19:30', '2025-10-18 18:22:47');
 
 --
 -- Indexes for dumped tables
@@ -2646,7 +2612,7 @@ ALTER TABLE `cities`
 -- AUTO_INCREMENT for table `clients`
 --
 ALTER TABLE `clients`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `client_logos`
@@ -2694,7 +2660,7 @@ ALTER TABLE `currencies`
 -- AUTO_INCREMENT for table `equipments`
 --
 ALTER TABLE `equipments`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `failed_jobs`
@@ -2742,13 +2708,13 @@ ALTER TABLE `forum_post_comments`
 -- AUTO_INCREMENT for table `inspections`
 --
 ALTER TABLE `inspections`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `inspection_photos`
 --
 ALTER TABLE `inspection_photos`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `languages`
@@ -2910,7 +2876,7 @@ ALTER TABLE `ticket_related_services`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=145;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables

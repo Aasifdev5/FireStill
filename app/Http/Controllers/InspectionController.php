@@ -13,21 +13,21 @@ use Illuminate\Support\Facades\Log;
 
 class InspectionController extends Controller
 {
-    // Centralize QR code generation
     private function generateQrCode($equipmentCode)
     {
         $qrFolder = public_path('uploads/qr_codes');
         if (!file_exists($qrFolder)) {
             mkdir($qrFolder, 0755, true);
+            Log::info('Created QR code directory: ' . $qrFolder);
         }
-        $qrFileName = $equipmentCode . '.png';
+        $qrFileName = 'inspection_' . $equipmentCode . '.png';
         $qrPath = $qrFolder . '/' . $qrFileName;
 
         try {
-            Log::info('Generating QR code for equipment code: ' . $equipmentCode . ', path: ' . $qrPath);
+            $inspectionHistoryUrl = url('/inspections/history?code=' . $equipmentCode);
             $result = Builder::create()
                 ->writer(new PngWriter())
-                ->data($equipmentCode)
+                ->data($inspectionHistoryUrl)
                 ->size(300)
                 ->margin(10)
                 ->build();
@@ -35,7 +35,6 @@ class InspectionController extends Controller
             if (!file_exists($qrPath)) {
                 throw new \Exception('QR code file was not created at ' . $qrPath);
             }
-            Log::info('QR code generated successfully for code: ' . $equipmentCode);
             return 'uploads/qr_codes/' . $qrFileName;
         } catch (\Exception $e) {
             Log::error('Failed to generate QR code: ' . $e->getMessage());
@@ -53,43 +52,50 @@ class InspectionController extends Controller
     public function create(Equipment $equipment)
     {
         $user_session = Session::has('LoggedIn') ? \App\Models\User::find(Session::get('LoggedIn')) : null;
-
-        // Generate QR code if not exists
-        if (!$equipment->qr_code) {
+        if (!$equipment->inspection_qr_code) {
             $qrPath = $this->generateQrCode($equipment->code);
             if ($qrPath) {
-                $equipment->update(['qr_code' => $qrPath]);
+                $equipment->update(['inspection_qr_code' => $qrPath]);
             }
         }
-
         return view('admin.inspections.create', compact('equipment', 'user_session'));
     }
 
     public function store(Request $request)
     {
         try {
-            $request->validate([
+            if (!Session::has('LoggedIn')) {
+                return response()->json(['success' => false, 'message' => 'User not authenticated'], 401);
+            }
+
+            $userId = Session::get('LoggedIn');
+            $user = \App\Models\User::find($userId);
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'Invalid user'], 401);
+            }
+
+            $validated = $request->validate([
                 'equipment_id' => 'required|exists:equipments,id',
                 'inspected_at' => 'required|date',
                 'checklist' => 'required|array',
                 'checklist.*' => 'required|in:yes,no',
                 'observations' => 'nullable|string',
                 'expiration_date' => 'required|date',
-                'photos.*' => 'image', // 5MB per photo
+                'photos.*' => 'image',
             ]);
 
             $equipment = Equipment::findOrFail($request->equipment_id);
 
-            // Generate QR code if not exists
-            if (!$equipment->qr_code) {
+            if (!$equipment->inspection_qr_code) {
                 $qrPath = $this->generateQrCode($equipment->code);
-                if ($qrPath) $equipment->update(['qr_code' => $qrPath]);
+                if ($qrPath) {
+                    $equipment->update(['inspection_qr_code' => $qrPath]);
+                }
             }
 
-            // Create inspection
             $inspection = Inspection::create([
                 'equipment_id' => $request->equipment_id,
-                'user_id' => Session::get('LoggedIn'),
+                'user_id' => $userId,
                 'inspected_at' => $request->inspected_at,
                 'checklist' => $request->checklist,
                 'observations' => $request->observations,
@@ -97,26 +103,26 @@ class InspectionController extends Controller
                 'expiration_date' => $request->expiration_date,
             ]);
 
-            // Handle photo uploads
             if ($request->hasFile('photos')) {
                 $photoDestination = public_path('uploads/inspections/photos');
-                if (!file_exists($photoDestination)) mkdir($photoDestination, 0755, true);
+                if (!file_exists($photoDestination)) {
+                    mkdir($photoDestination, 0755, true);
+                }
 
                 foreach ($request->file('photos') as $index => $file) {
-                    $uid = Session::get('LoggedIn');
-                    $filename = $uid . '_photo_' . time() . '_' . $index . '.' . $file->getClientOriginalExtension();
+                    $filename = $userId . '_photo_' . time() . '_' . $index . '.' . $file->getClientOriginalExtension();
                     $file->move($photoDestination, $filename);
                     $path = 'uploads/inspections/photos/' . $filename;
-
                     $inspection->photos()->create(['path' => $path]);
                 }
             }
 
-            // Generate PDF report
             $pdfDestination = public_path('uploads/inspections/reports');
-            if (!file_exists($pdfDestination)) mkdir($pdfDestination, 0755, true);
+            if (!file_exists($pdfDestination)) {
+                mkdir($pdfDestination, 0755, true);
+            }
 
-            $pdf = PDF::loadView('admin.inspections.report_pdf', compact('inspection'))
+            $pdf = Pdf::loadView('admin.inspections.report_pdf', compact('inspection'))
                 ->setOptions([
                     'isHtml5ParserEnabled' => true,
                     'isRemoteEnabled' => true,
@@ -124,14 +130,12 @@ class InspectionController extends Controller
                     'defaultFont' => 'Arial',
                 ]);
 
-            $uid = Session::get('LoggedIn');
-            $filename = $uid . '_report_' . time() . '.pdf';
+            $filename = $userId . '_report_' . time() . '.pdf';
             $pdf->save($pdfDestination . '/' . $filename);
-
             $path = 'uploads/inspections/reports/' . $filename;
             $inspection->update(['report_path' => $path]);
 
-            $this->scheduleNotification($equipment);
+            $equipment->notifyClient($inspection->status);
 
             return response()->json([
                 'success' => true,
@@ -139,15 +143,13 @@ class InspectionController extends Controller
                 'pdf_path' => $path
             ]);
         } catch (\Exception $e) {
-            Log::error('Error in store method: ' . $e->getMessage());
+            Log::error('Error in store method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error al guardar la inspección: ' . $e->getMessage()
             ], 500);
         }
     }
-
-
 
     protected function determineStatus($checklist)
     {
@@ -181,29 +183,27 @@ class InspectionController extends Controller
 
     public function pdf(Inspection $inspection)
     {
-        return response()->file(public_path($inspection->report_path));
+        $filePath = public_path($inspection->report_path);
+        if (!file_exists($filePath)) {
+            Log::error('PDF file not found: ' . $inspection->report_path);
+            return response()->json(['success' => false, 'message' => 'PDF file not found'], 404);
+        }
+        return response()->file($filePath);
     }
 
-    // Basic notification scheduling (to be enhanced with email/sms)
-    private function scheduleNotification($equipment)
+    public function history(Request $request)
     {
-        $lastInspection = $equipment->inspections()->latest()->first();
-
-        if (!$lastInspection) return;
-
-        $nextInspection = $lastInspection->inspected_at->addMonths(6); // Semiannual
-        $isCritical = $lastInspection->status === 'critical';
-
-        // Send reminder if next inspection is within 30 days
-        if (!$isCritical && $nextInspection->isFuture() && $nextInspection->diffInDays(now()) <= 30) {
-            $equipment->client->notify(new \App\Notifications\EquipmentInspectionReminder($equipment, $nextInspection));
-            Log::info("Reminder scheduled for equipment {$equipment->code} on {$nextInspection}");
+        $code = $request->query('code');
+        if (!$code) {
+            return redirect()->route('scan.qr')->with('error', 'Código QR requerido.');
         }
 
-        // Send alert if status is critical
-        if ($isCritical) {
-            $equipment->client->notify(new \App\Notifications\EquipmentInspectionReminder($equipment, $nextInspection, true));
-            Log::info("Alert triggered for critical equipment {$equipment->code}");
+        $equipment = Equipment::where('code', $code)->with(['client', 'inspections'])->first();
+        if (!$equipment) {
+            return redirect()->route('scan.qr')->with('error', 'Equipo no encontrado.');
         }
+
+        $user_session = Session::has('LoggedIn') ? \App\Models\User::find(Session::get('LoggedIn')) : null;
+        return view('admin.inspections.history', compact('equipment', 'user_session'));
     }
 }
