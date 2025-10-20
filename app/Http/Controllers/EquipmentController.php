@@ -172,44 +172,63 @@ class EquipmentController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
-        $equipment = Equipment::findOrFail($id);
+{
+    $equipment = Equipment::findOrFail($id);
 
-        $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            'type' => 'required|string',
-            'brand' => 'required|string|max:255',
-            'model' => 'required|string|max:255',
-            'manufacturer_code' => 'nullable|string|max:255',
-            'serial_number' => 'required|string|max:255',
-            'location' => 'required|string|max:255',
-            'agent_type' => 'nullable|string|max:255',
-            'manufacture_date' => 'nullable|date',
-            'last_recharge_date' => 'nullable|date',
-            'installation_date' => 'nullable|date',
-            'expiry_date' => 'nullable|date',
-            'notes' => 'nullable|string',
-        ]);
+    $request->validate([
+        'client_id' => 'required|exists:clients,id',
+        'type' => 'required|string',
+        'brand' => 'required|string|max:255',
+        'model' => 'required|string|max:255',
+        'manufacturer_code' => 'nullable|string|max:255',
+        'serial_number' => 'required|string|max:255',
+        'location' => 'required|string|max:255',
+        'agent_type' => 'nullable|string|max:255',
+        'manufacture_date' => 'nullable|date',
+        'last_recharge_date' => 'nullable|date',
+        'installation_date' => 'nullable|date',
+        'expiry_date' => 'nullable|date',
+        'notes' => 'nullable|string',
+    ]);
 
-        $equipment->update($request->all());
+    // Update all fields
+    $equipment->update($request->all());
 
-        if (!$equipment->qr_code || !file_exists(public_path($equipment->qr_code))) {
-            $qrFileName = $equipment->code . '.png';
-            $labelUrl = url('/equipment/label?code=' . $equipment->code);
-            $qrPath = $this->generateQrCode($labelUrl, $qrFileName);
-            $equipment->update(['qr_code' => $qrPath]);
-        }
-
-        if (!$equipment->inspection_qr_code || !file_exists(public_path($equipment->inspection_qr_code))) {
-            $inspectionQrFileName = 'inspection_' . $equipment->code . '.png';
-            $inspectionUrl = url('/inspections/history?code=' . $equipment->code);
-            $inspectionQrPath = $this->generateQrCode($inspectionUrl, $inspectionQrFileName);
-            $equipment->update(['inspection_qr_code' => $inspectionQrPath]);
-        }
-
-        return redirect()->route('equipments.index')
-            ->with('success', 'Equipo actualizado correctamente.');
+    // --- Delete old QR codes if they exist ---
+    if ($equipment->qr_code && file_exists(public_path($equipment->qr_code))) {
+        @unlink(public_path($equipment->qr_code));
     }
+    if ($equipment->inspection_qr_code && file_exists(public_path($equipment->inspection_qr_code))) {
+        @unlink(public_path($equipment->inspection_qr_code));
+    }
+
+    // --- Generate new QR codes ---
+    try {
+        $qrFileName = $equipment->code . '.png';
+        $inspectionQrFileName = 'inspection_' . $equipment->code . '.png';
+
+        $labelUrl = url('/equipment/label?code=' . $equipment->code);
+        $qrPath = $this->generateQrCode($labelUrl, $qrFileName);
+
+        $inspectionUrl = url('/inspections/history?code=' . $equipment->code);
+        $inspectionQrPath = $this->generateQrCode($inspectionUrl, $inspectionQrFileName);
+
+        $equipment->update([
+            'qr_code' => $qrPath,
+            'inspection_qr_code' => $inspectionQrPath,
+        ]);
+    } catch (\Exception $e) {
+        Log::error('QR regeneration failed for equipment ID ' . $equipment->id . ': ' . $e->getMessage());
+        $equipment->update([
+            'qr_code' => null,
+            'inspection_qr_code' => null,
+        ]);
+    }
+
+    return redirect()->route('equipments.index')
+        ->with('success', 'Equipo actualizado correctamente con nuevos códigos QR.');
+}
+
 
     public function approve(Request $request)
     {

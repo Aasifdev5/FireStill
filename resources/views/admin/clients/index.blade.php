@@ -8,7 +8,7 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Clientes Registrados</h5>
                 <a href="{{ route('clients.create') }}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus"></i> Nuevo Cliente
+                    <i class="fa fa-plus"></i> Nuevo Cliente
                 </a>
             </div>
             <div class="card-body">
@@ -33,13 +33,13 @@
                                     <td>
                                         <!-- Edit Button -->
                                         <a href="{{ route('clients.edit', $client->id) }}" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-edit"></i> Editar
+                                            <i class="fa fa-edit"></i> Editar
                                         </a>
 
                                         <!-- Delete Button -->
                                         <button type="button" class="btn btn-sm btn-danger"
                                             onclick="confirmDelete('{{ $client->id }}', '/clients')">
-                                            <i class="fas fa-trash"></i> Eliminar
+                                            <i class="fa fa-trash"></i> Eliminar
                                         </button>
                                     </td>
 

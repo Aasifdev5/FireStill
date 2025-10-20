@@ -14,7 +14,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Equipos Registrados</h5>
             <a href="{{ route('equipments.create') }}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus"></i> Nuevo Equipo
+                <i class="fa fa-plus"></i> Nuevo Equipo
             </a>
         </div>
         <div class="card-body">
@@ -67,13 +67,13 @@
                                         <i class="fa fa-trash"></i> Eliminar
                                     </button>
                                     <a href="{{ route('equipments.profile') }}?code={{ urlencode($eq['code']) }}" class="btn btn-sm btn-info mt-1">
-                                        <i class="fas fa-qrcode"></i> Ver Perfil
+                                        <i class="fa fa-qrcode"></i> Ver Perfil
                                     </a>
 
                                     <!-- Nueva Inspección solo para equipos aprobados -->
                                     @if ($eq['status'] === 'approved')
                                         <a href="{{ route('inspections.create', $eq['id']) }}" class="btn btn-sm btn-primary mt-1">
-                                            <i class="fas fa-plus"></i> Nueva Inspección
+                                            <i class="fa fa-plus"></i> Nueva Inspección
                                         </a>
                                     @endif
                                 </div>
